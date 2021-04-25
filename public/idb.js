@@ -1,3 +1,5 @@
+// const { response } = require("express");
+
 let db;
 
 const request = indexedDB.open('budget_tracker', 1);
@@ -29,24 +31,27 @@ function saveRecord(record) {
 }
 
 function uploadEntry() {
-    const transaction = db.transaction('new_entry', 'readwrite');
+    const transaction = db.transaction(['new_entry'], 'readwrite');
     const budgetObjectStore = transaction.objectStore('new_entry');
     const getAll = budgetObjectStore.getAll();
 
     getAll.onsuccess = function() {
         if (getAll.result.length > 0) {
-            fetch('/api/transaction', {
+            fetch('/api/transaction/bulk', {
                 method: 'POST',
                 body: JSON.stringify(getAll.result),
                 headers: {
                     Accept: 'application/json, text/plain, */*',
-                    'Concept-Type': 'application/json'
+                    'Content-Type': 'application/json'
                 }
             })
                 .then(response => response.json())
                 .then(serverResponse => {
                     if(serverResponse.message) {
+                        console.log(serverResponse);
+                        console.log('-------------');
                         throw new Error(serverResponse);
+                        
                     }
 
                     const transaction = db.transaction(['new_entry'], 'readwrite');
